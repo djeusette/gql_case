@@ -53,8 +53,8 @@ defmodule GqlCase do
         quote location: :keep do
           import GqlCase
 
-          Module.put_attribute(__MODULE__, :_gql_case_gql_path, unquote(@_gql_path))
-          Module.put_attribute(__MODULE__, :_gql_case_jwt_bearer_fn, unquote(@_jwt_bearer_fn))
+          Module.put_attribute(__MODULE__, :_gql_path, unquote(@_gql_path))
+          Module.put_attribute(__MODULE__, :_jwt_bearer_fn, unquote(@_jwt_bearer_fn))
         end
       end
     end
