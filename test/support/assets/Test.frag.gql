@@ -1,0 +1,3 @@
+#import "./SubTest.frag.gql"
+
+#this is just a test fragment to test imports
