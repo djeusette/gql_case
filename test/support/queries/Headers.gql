@@ -1,0 +1,6 @@
+query {
+  headers {
+    key
+    value
+  }
+}

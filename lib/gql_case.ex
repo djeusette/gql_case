@@ -36,6 +36,7 @@ defmodule GqlCase do
     quote location: :keep do
       @_gql_path Keyword.get(unquote(opts), :gql_path)
       @_jwt_bearer_fn Keyword.get(unquote(opts), :jwt_bearer_fn)
+      @_default_headers Keyword.get(unquote(opts), :default_headers, [])
 
       if is_nil(@_gql_path) do
         raise SetupError, reason: :missing_path
@@ -49,12 +50,25 @@ defmodule GqlCase do
         raise SetupError, reason: :invalid_jwt_bearer_fn
       end
 
-      defmacro __using__(_opts) do
+      if not is_nil(@_default_headers) and not is_list(@_default_headers) do
+        raise SetupError, reason: :invalid_default_headers
+      end
+
+      defmacro __using__(inner_opts) do
         quote location: :keep do
           import GqlCase
 
+          @_specific_default_headers Keyword.get(unquote(inner_opts), :headers, [])
+
+          default_headers =
+            GqlCase.merge_headers_with_priority([
+              unquote(@_default_headers),
+              @_specific_default_headers
+            ])
+
           Module.put_attribute(__MODULE__, :_gql_path, unquote(@_gql_path))
           Module.put_attribute(__MODULE__, :_jwt_bearer_fn, unquote(@_jwt_bearer_fn))
+          Module.put_attribute(__MODULE__, :_default_headers, default_headers)
         end
       end
     end
@@ -105,10 +119,12 @@ defmodule GqlCase do
   ```
   """
   defmacro query_gql(opts \\ []) do
-    quote do
+    quote location: :keep do
       if is_nil(@_gql_query) do
         raise SetupError, reason: :missing_declaration
       end
+
+      import Phoenix.ConnTest, only: [build_conn: 0, post: 3, json_response: 2]
 
       payload = %{
         query: @_gql_query,
@@ -116,24 +132,38 @@ defmodule GqlCase do
       }
 
       build_conn()
+      |> add_headers(@_default_headers)
       |> add_headers(@_jwt_bearer_fn, unquote(opts))
       |> post(@_gql_path, JSON.encode!(payload))
       |> json_response(200)
     end
   end
 
-  def add_headers(%Conn{} = conn, jwt_bearer_fn, opts \\ []) when is_function(jwt_bearer_fn, 1) do
-    extra_headers =
-      Keyword.get(opts, :headers, [])
-
-    headers =
-      (default_headers() ++
-         List.wrap(extra_headers) ++ authorization_header(jwt_bearer_fn, opts))
-      |> Enum.uniq()
-
+  def add_headers(%Conn{} = conn, headers) when is_list(headers) do
     Enum.reduce(headers, conn, fn {key, value}, conn ->
       Conn.put_req_header(conn, key, value)
     end)
+  end
+
+  def add_headers(%Conn{} = conn, jwt_bearer_fn, opts \\ []) when is_function(jwt_bearer_fn, 1) do
+    query_headers = Keyword.get(opts, :headers, [])
+
+    headers =
+      merge_headers_with_priority([
+        default_headers(),
+        List.wrap(query_headers),
+        authorization_header(jwt_bearer_fn, opts)
+      ])
+
+    add_headers(conn, headers)
+  end
+
+  def merge_headers_with_priority(header_lists) do
+    header_lists
+    |> Enum.flat_map(& &1)
+    |> Enum.reverse()
+    |> Enum.uniq_by(fn {key, _value} -> String.downcase(key) end)
+    |> Enum.reverse()
   end
 
   defp default_headers do
