@@ -6,7 +6,7 @@ defmodule GqlCase.AdditionalHeadersTest do
 
   @endpoint GqlCase.TestApi.Endpoint
 
-  load_gql("../support/queries/SecretData.gql")
+  load_gql_file("../support/queries/SecretData.gql")
 
   describe "SecretData.gql" do
     test "returns an error when the api key header is not set" do

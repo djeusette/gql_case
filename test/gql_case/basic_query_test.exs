@@ -4,7 +4,7 @@ defmodule GqlCase.BasicQueryTest do
 
   @endpoint GqlCase.TestApi.Endpoint
 
-  load_gql("../support/queries/Hello.gql")
+  load_gql_file("../support/queries/Hello.gql")
 
   describe "Hello.gql" do
     test "returns the response of the basic query" do

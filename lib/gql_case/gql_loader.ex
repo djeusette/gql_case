@@ -71,12 +71,28 @@ defmodule GqlCase.GqlLoader do
 
   For example:
   ```elixir
-  load_string!(@my_query_source)
+  load_string!(@my_query_source, "/path/to/base")
   ```
   """
-  @spec load_string!(binary) :: binary
-  def load_string!(query_string) when is_binary(query_string) do
-    do_import_expansion(query_string, expand_path(File.cwd!(), nil))
+  @spec load_string!(binary, binary) :: binary
+  def load_string!(query_string, base_path)
+      when is_binary(query_string) and is_binary(base_path) do
+    validate_query_string!(query_string)
+
+    do_import_expansion(query_string, expand_path(base_path, nil))
+    |> try_parse_document(base_path)
+  end
+
+  defp validate_query_string!(query) do
+    # Size limit (10MB) to prevent accidental large strings
+    if byte_size(query) > 10_485_760 do
+      raise LoaderError, path: "query string", reason: "Query string too large (max 10MB)"
+    end
+
+    # Null byte check to prevent issues
+    if String.contains?(query, <<0>>) do
+      raise LoaderError, path: "query string", reason: "Query string contains null bytes"
+    end
   end
 
   defp expand_path(relative_path, nil), do: relative_path

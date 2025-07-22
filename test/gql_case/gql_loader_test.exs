@@ -15,10 +15,10 @@ defmodule GqlCase.GqlLoaderTest do
     end
   end
 
-  describe "load_string!/1" do
+  describe "load_string!/2" do
     test "should load a string as a valid query, including an import" do
       string = """
-      #import "./test/support/assets/Test.frag.gql"
+      #import "../support/assets/Test.frag.gql"
       {
         Messages {
           ...MessageFields
@@ -26,7 +26,9 @@ defmodule GqlCase.GqlLoaderTest do
       }
       """
 
-      document = GqlLoader.load_string!(string)
+      # Use the current file's directory as base path for import resolution
+      base_path = Path.dirname(__ENV__.file)
+      document = GqlLoader.load_string!(string, base_path)
       assert String.contains?(document, "#this is just a test fragment to test imports")
       assert String.contains?(document, "#this is just a test fragment to test nested imports")
     end

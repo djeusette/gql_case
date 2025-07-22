@@ -6,7 +6,7 @@ defmodule GqlCase.OverrideDefaultHeadersTest do
 
   @endpoint GqlCase.TestApi.Endpoint
 
-  load_gql("../support/queries/Headers.gql")
+  load_gql_file("../support/queries/Headers.gql")
 
   describe "Headers.gql" do
     test "returns the overridden headers" do

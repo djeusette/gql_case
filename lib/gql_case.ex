@@ -15,10 +15,10 @@ defmodule GqlCase do
     def message(exception) do
       case exception.reason do
         :double_declaration ->
-          "You cannot declare two 'load_gql' statements in the same module."
+          "You cannot declare two GraphQL document loading statements in the same module."
 
         :missing_declaration ->
-          "No GQL document was registered on this module, please use `load_gql`"
+          "No GQL document was registered on this module, please use `load_gql_file` or `load_gql_string`"
 
         :missing_path ->
           "No path to the GQL api was registered on this module, please provide `gql_path`"
@@ -75,37 +75,62 @@ defmodule GqlCase do
   end
 
   @doc """
-  Call this macro in the module you wish to load your GQL document in.
+  Call this macro in the module you wish to load your GQL document from a file.
 
   It takes one argument, the path to a GQL file that contains a GraphQL query or mutation.
 
   For example:
   ```elixir
   defmodule MyApp do
-    load_gql MyApp.MyAbsintheSchema, "assets/js/queries/MyQuery.gql"
+    load_gql_file "assets/js/queries/MyQuery.gql"
     # ...
   end
   ```
   """
-  defmacro load_gql(file_path) do
+  defmacro load_gql_file(file_path) do
     quote do
       if Module.get_attribute(unquote(__CALLER__.module), :_gql_query) != nil do
-        raise GqlCase.LoadGqlError, reason: :double_declaration
+        raise GqlCase.SetupError, reason: :double_declaration
       end
 
       caller_directory = Path.dirname(unquote(__CALLER__.file))
-
-      absolute_path =
-        Path.expand(unquote(file_path), caller_directory)
-
+      absolute_path = Path.expand(unquote(file_path), caller_directory)
       document = GqlLoader.load_file!(absolute_path)
-
       Module.put_attribute(unquote(__CALLER__.module), :_gql_query, document)
     end
   end
 
   @doc """
-  Call this macro in the module you've loaded a document into using `load_gql`.
+  Call this macro in the module you wish to load your GQL document from a query string.
+
+  It takes one argument, a string containing a GraphQL query or mutation.
+
+  For example:
+  ```elixir
+  defmodule MyApp do
+    load_gql_string \"\"\"
+    query {
+      hello
+    }
+    \"\"\"
+    # ...
+  end
+  ```
+  """
+  defmacro load_gql_string(query_string) do
+    quote do
+      if Module.get_attribute(unquote(__CALLER__.module), :_gql_query) != nil do
+        raise GqlCase.SetupError, reason: :double_declaration
+      end
+
+      caller_directory = Path.dirname(unquote(__CALLER__.file))
+      document = GqlLoader.load_string!(unquote(query_string), caller_directory)
+      Module.put_attribute(unquote(__CALLER__.module), :_gql_query, document)
+    end
+  end
+
+  @doc """
+  Call this macro in the module you've loaded a document into using `load_gql_file` or `load_gql_string`.
 
   Calling this will execute the document loaded into the module against gql path loaded in the module.
   It accepts a keyword list for `options`. These options might be `variables` and `current_user`.

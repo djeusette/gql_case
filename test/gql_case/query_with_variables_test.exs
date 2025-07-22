@@ -4,7 +4,7 @@ defmodule GqlCase.QueryWithVariablesTest do
 
   @endpoint GqlCase.TestApi.Endpoint
 
-  load_gql("../support/queries/Greet.gql")
+  load_gql_file("../support/queries/Greet.gql")
 
   describe "Greet.gql" do
     test "with the expected variables, returns the response of the query" do

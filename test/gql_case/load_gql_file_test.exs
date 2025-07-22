@@ -1,10 +1,10 @@
-defmodule GqlCase.LoadGqlTest do
+defmodule GqlCase.LoadGqlFileTest do
   use ExUnit.Case
   use GqlCase.TestApi.DefaultGqlCase
 
-  load_gql("../support/queries/hello.gql")
+  load_gql_file("../support/queries/hello.gql")
 
-  describe "load_gql/1" do
+  describe "load_gql_file/1" do
     test "loads query from file" do
       assert @_gql_query
     end

@@ -6,7 +6,7 @@ defmodule GqlCase.AdditionalDefaultHeadersTest do
 
   @endpoint GqlCase.TestApi.Endpoint
 
-  load_gql("../support/queries/SecretData.gql")
+  load_gql_file("../support/queries/SecretData.gql")
 
   describe "SecretData.gql" do
     test "works with the additional default headers" do

@@ -4,7 +4,7 @@ defmodule GqlCase.AuthenticatedQueryTest do
 
   @endpoint GqlCase.TestApi.Endpoint
 
-  load_gql("../support/queries/CurrentUser.gql")
+  load_gql_file("../support/queries/CurrentUser.gql")
 
   describe "CurrentUser.gql" do
     test "when not authenticated, returns an error" do
