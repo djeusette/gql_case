@@ -158,16 +158,9 @@ defmodule GqlCase do
   defmacro query_gql(opts \\ []) do
     quote location: :keep do
       query =
-        case Keyword.get(unquote(opts), :query) do
-          nil ->
-            case @_gql_query do
-              nil -> raise SetupError, reason: :missing_declaration
-              module_query -> module_query
-            end
-
-          inline_query ->
-            inline_query
-        end
+        Keyword.get(unquote(opts), :query) ||
+          @_gql_query ||
+          raise SetupError, reason: :missing_declaration
 
       import Phoenix.ConnTest, only: [build_conn: 0, post: 3, json_response: 2]
 
