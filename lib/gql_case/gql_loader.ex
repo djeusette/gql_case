@@ -3,6 +3,9 @@ defmodule GqlCase.GqlLoader do
   Defines the functions used to load GQL documents based on the document path.
   """
 
+  alias Absinthe.Language.Source
+  alias Absinthe.Phase.Parse
+
   defmodule ImportError do
     @moduledoc """
     Exception raised when we can't find a file imported via an
@@ -148,7 +151,7 @@ defmodule GqlCase.GqlLoader do
   end
 
   defp try_parse_document(document, src_path) do
-    case Absinthe.Phase.Parse.run(%Absinthe.Language.Source{body: document}) do
+    case Parse.run(%Source{body: document}) do
       {:ok, _blueprint} ->
         document
 
