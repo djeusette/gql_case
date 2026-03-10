@@ -1,4 +1,5 @@
 defmodule GqlCase.TestApi.Jwt do
+  @moduledoc false
   def encode(_user) do
     {:ok, "test-jwt-token", %{}}
   end

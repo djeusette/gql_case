@@ -18,7 +18,7 @@ defmodule GqlCase do
           "You cannot declare two GraphQL document loading statements in the same module."
 
         :missing_declaration ->
-          "No GQL document was registered on this module, please use `load_gql_file` or `load_gql_string`"
+          "No GQL document was provided, please use the `query:` option or `load_gql_file`/`load_gql_string`"
 
         :missing_path ->
           "No path to the GQL api was registered on this module, please provide `gql_path`"
@@ -69,6 +69,7 @@ defmodule GqlCase do
           Module.put_attribute(__MODULE__, :_gql_path, unquote(@_gql_path))
           Module.put_attribute(__MODULE__, :_jwt_bearer_fn, unquote(@_jwt_bearer_fn))
           Module.put_attribute(__MODULE__, :_default_headers, default_headers)
+          Module.register_attribute(__MODULE__, :_gql_query, persist: false)
         end
       end
     end
@@ -130,29 +131,41 @@ defmodule GqlCase do
   end
 
   @doc """
-  Call this macro in the module you've loaded a document into using `load_gql_file` or `load_gql_string`.
+  Execute a GraphQL query or mutation against the configured endpoint.
 
-  Calling this will execute the document loaded into the module against gql path loaded in the module.
-  It accepts a keyword list for `options`. These options might be `variables` and `current_user`.
+  The query is resolved from two sources, in priority order:
+  1. The `query:` option (runtime) — used if provided
+  2. The `@_gql_query` module attribute — fallback (set via `load_gql_file` or `load_gql_string`)
 
-  Returns the query result from the HTTP GQL call.
+  If neither is present, raises `SetupError`.
 
-  For example:
-  ```elixir
-  result = query_gql(variables: %{}, current_user: %{})
-  %{"data" => %{} = result 
-  ```
+  ## Options
+
+    * `query` - a GraphQL query string (optional if `load_gql_file`/`load_gql_string` was used)
+    * `variables` - a map of GraphQL variables (default: `%{}`)
+    * `current_user` - a user map for JWT authentication (optional)
+    * `headers` - a list of `{key, value}` header tuples (optional)
+
+  ## Examples
+
+      # Per-call inline query
+      query_gql(query: "query { hello }", variables: %{})
+
+      # Using module-level query (legacy)
+      load_gql_file "queries/Hello.gql"
+      query_gql(variables: %{})
   """
   defmacro query_gql(opts \\ []) do
     quote location: :keep do
-      if is_nil(@_gql_query) do
-        raise SetupError, reason: :missing_declaration
-      end
+      query =
+        Keyword.get(unquote(opts), :query) ||
+          @_gql_query ||
+          raise SetupError, reason: :missing_declaration
 
       import Phoenix.ConnTest, only: [build_conn: 0, post: 3, json_response: 2]
 
       payload = %{
-        query: @_gql_query,
+        query: query,
         variables: Keyword.get(unquote(opts), :variables, %{})
       }
 

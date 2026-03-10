@@ -10,6 +10,8 @@ defmodule GqlCase.TestApi.SetCurrentUserPlug do
   the context from the connection.
   """
 
+  alias GqlCase.TestApi.Jwt
+
   @behaviour Plug
 
   import Plug.Conn
@@ -23,7 +25,7 @@ defmodule GqlCase.TestApi.SetCurrentUserPlug do
 
   defp build_context(conn) do
     with ["Bearer " <> "test-jwt-token"] <- get_req_header(conn, "authorization"),
-         {:ok, user} <- GqlCase.TestApi.Jwt.decode("test-jwt-token") do
+         {:ok, user} <- Jwt.decode("test-jwt-token") do
       %{current_user: user}
     else
       _ -> nil
