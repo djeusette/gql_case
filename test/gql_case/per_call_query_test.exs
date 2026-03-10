@@ -24,7 +24,7 @@ defmodule GqlCase.PerCallQueryTest do
       assert %{"data" => %{"currentUser" => %{"id" => "1", "name" => "David"}}} =
                query_gql(
                  query: "query { currentUser { id name } }",
-                 current_user: %{name: David}
+                 current_user: %{name: "David"}
                )
     end
   end
