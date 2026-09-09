@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.1 - 2026-09-09
+## 0.8.0 - 2026-09-09
 
 ### Fixed
 
@@ -15,6 +15,14 @@
 
 - Added a GitHub Actions matrix for Elixir 1.18.4/OTP 27 and Elixir 1.20.4/OTP 29.
 - Updated credo so `mix credo --strict` works on Elixir 1.20.
+- Require `plug ~> 1.20` and `absinthe ~> 1.12`. The previous floors admitted
+  plug 1.18.1 (GHSA-468c-vq7p-gh64) and absinthe 1.7.10 (GHSA-9mhv-8h52-q7q2,
+  GHSA-qf4g-9fqq-mmm7), which have published high-severity advisories.
+- Updated all dev and test dependencies to their latest releases (phoenix 1.8,
+  bandit 1.12, absinthe_plug 1.5.10, ex_doc 0.40). The previously locked
+  bandit, phoenix and absinthe_plug versions also had published advisories.
+  `mix hex.audit` and `mix deps.audit` now report no retired packages and no
+  known advisories in the lock.
 
 ## 0.7.0 - 2026-03-10
 

@@ -17,7 +17,7 @@ Add `gql_case` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:gql_case, "~> 0.5"}
+    {:gql_case, "~> 0.8"}
   ]
 end
 ```
