@@ -139,6 +139,10 @@ defmodule GqlCase do
 
   If neither is present, raises `SetupError`.
 
+  Whether a document was loaded is decided when `query_gql/1` is expanded, so
+  `load_gql_file/1` or `load_gql_string/1` must appear before the functions
+  that call `query_gql/1`.
+
   ## Options
 
     * `query` - a GraphQL query string (optional if `load_gql_file`/`load_gql_string` was used)
@@ -156,11 +160,10 @@ defmodule GqlCase do
       query_gql(variables: %{})
   """
   defmacro query_gql(opts \\ []) do
+    query = query_expr(opts, Module.get_attribute(__CALLER__.module, :_gql_query))
+
     quote location: :keep do
-      query =
-        Keyword.get(unquote(opts), :query) ||
-          @_gql_query ||
-          raise SetupError, reason: :missing_declaration
+      query = unquote(query)
 
       import Phoenix.ConnTest, only: [build_conn: 0, post: 3, json_response: 2]
 
@@ -174,6 +177,21 @@ defmodule GqlCase do
       |> add_headers(@_jwt_bearer_fn, unquote(opts))
       |> post(@_gql_path, JSON.encode!(payload))
       |> json_response(200)
+    end
+  end
+
+  # The fallback is chosen at expansion time. A loaded document expands to a
+  # string literal, so keeping a `raise` after it would leave a branch the
+  # type checker can prove unreachable (a warning since Elixir 1.20).
+  defp query_expr(opts, nil) do
+    quote do
+      Keyword.get(unquote(opts), :query) || raise SetupError, reason: :missing_declaration
+    end
+  end
+
+  defp query_expr(opts, _document) do
+    quote do
+      Keyword.get(unquote(opts), :query) || @_gql_query
     end
   end
 
