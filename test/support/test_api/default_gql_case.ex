@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Warning.WrongTestFilename
 defmodule GqlCase.TestApi.DefaultGqlCase do
   @moduledoc """
   Default GqlCase for the Test API
