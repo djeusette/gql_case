@@ -40,13 +40,13 @@ defmodule GqlCase.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:plug, "~> 1.18"},
-      {:absinthe, "~> 1.7"},
+      {:plug, "~> 1.20"},
+      {:absinthe, "~> 1.12"},
       {:absinthe_plug, "~> 1.5", only: :test},
-      {:phoenix, "~> 1.7", only: :test},
-      {:bandit, "~> 1.7", only: :test},
+      {:phoenix, "~> 1.8", only: :test},
+      {:bandit, "~> 1.12", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
